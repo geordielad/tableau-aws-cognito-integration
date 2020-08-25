@@ -4,7 +4,7 @@ AWS Cognito can be an OpenID Connect (OIDC) provider for Tableau Server. Cognito
 
 ## Basic Setup for AWS Cognito as the Identity Provider
 
-On the Tableau Services Manager (TSM) Configuration tab, you will need to enter some OIDC settings that are configured on the Cognito application.
+The [Tableau documentation on OpenID Connect](https://help.tableau.com/current/server/en-us/openid_auth.htm) provides the instructions for configuring Tableau Server. On the Tableau Services Manager (TSM) Configuration tab, you will need to enter some OIDC settings that are configured on the Cognito application.
 
 These will include:
 
@@ -12,8 +12,7 @@ These will include:
 2. Provider client secret
 3. Provider configuration URL (.well-known/openid-configuration)
 
-
-On the Cognito application side, you will configure the Tableau redirect endpoint (aka redirect uri in the standard) defined in Step 3 of the Tableau configuration. Note that this is based on the External URL for Tableau which could be a load balancer or Reverse Proxy DNS name. You will need to configure TLS/HTTPS for Tableau Server as a prerequisite. 
+On the Cognito application side, you will configure the Tableau redirect endpoint (aka redirect uri in the standard) defined in Step 3 of the Tableau configuration. Note that this is based on the External URL for Tableau which could be a load balancer or Reverse Proxy DNS name. You will need to configure TLS/HTTPS for Tableau Server as a prerequisite.
 
 ![TSM Authentication Configuration](img/tsm-authentication-method.png)
 
@@ -86,7 +85,6 @@ You probably will have a custom domain for the App integration.
 
 Cognito allows external federated Identity Providers. As of August 2020, the list of supported providers includes:
 
-
 * Facebook
 * Google
 * Amazon
@@ -102,7 +100,7 @@ We will configure Google and Okta OIDC as examples.
 
 ### Google
 
-Once the User Pool and Tableau App Client is configured as an OIDC provider adding Google is mostly a matter of following the AWS instructions, configuring the right attribute mapping for the Tableau username and enabling Google in the the App Client. The relevant AWS docs are here: http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html
+Once the User Pool and Tableau App Client is configured as an OIDC provider adding Google is mostly a matter of following the AWS instructions, configuring the right attribute mapping for the Tableau username and enabling Google in the the App Client. The relevant AWS docs are here: [cognito-user-pools-identity-federation](http://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-federation.html)
 
 ![cognito-external-provider-google](img/cognito-external-provider-google.png)
 
@@ -128,18 +126,23 @@ Note that I did need to create the user ahead of time in Tableau because we have
 
 ### Okta OIDC
 
-AWS Documentation: https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-provider.html#cognito-user-pools-oidc-providers
+Okta can be configured as an [external OIDC provider](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-identity-provider.html#cognito-user-pools-oidc-providers)
 
 ![cognito-oidc-okta](img/cognito-oidc-okta.png)
 ![cognito-oidc-okta-details](img/cognito-oidc-okta-details.png)
 
-Here are the mapped attributes for my Okta OIDC provider, The important one is email as that is what will hold the Tableau Username Attribute for the first authentication. See the later discussion about the **Sub** attribute, It cannot be changes and has some implications about how the different providers can be mixed.
+Here are the mapped attributes for my Okta OIDC provider, The important one is email as that is what will hold the Tableau Username Attribute for the first authentication. Again, See the later discussion about mixing providers.
 
 ![cognito-oidc-okta-mapping](img/cognito-oidc-okta-mapping.png)
 
 ## Adding Federated Providers to Client App Configuration
 
- 
+After creating authentication providers you will need to return to the Cognito App Client settings and check the providers you want to use in the app that is connected to Tableau Server.
 
-## Discussion about mixing providers
+![cognito-app-client-settings](img/cognito-app-client-settings.png)
 
+## Mixing Providers in the Tableau Application Settings
+
+While you can configure more than one provider for the Tableau application it is important to understand that, normally, for any one user they can only use one provider at a time for authentication. In other words a user cannot authenticate one day with Google then use Okta, or the internal Cognito, user the next. This will result in an error on the Tableau app because Tableau provides some additional security measures to avoid attacks. If you look at the Tableau user setup you will see that we treat the user's email address as the Tableau username. This is not the full picture however as Tableau will additionally store the OIDC **sub** attribute sent on the first login and then check this attribute on subsequent logins.
+
+If you need to change the provider for a user then you will need to reset the token for the user with a Tableau TSM command. See [Changing IdPs in Tableau Server for OpenID Connect](https://help.tableau.com/current/server-linux/en-us/openid_auth_changing_idp.htm)
