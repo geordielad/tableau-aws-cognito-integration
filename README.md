@@ -112,13 +112,15 @@ If the user does not already exist in Cognito that user will be created automati
 
 ![google-user](img/google-user.png)
 
-When I authenticated via Cognito using the Google Sign-in button:
+When I authenticated via Cognito using the *Continue with Google* Sign-in button:
+
+![cognito-google-sign-in](img/cognito-google-sign-in.png)
 
 ![google-sign-in](img/google-sign-in.png)
 
-![cognito-google-users-after-authn](img/cognito-google-users-after-authn.png)
-
 The user is created dynamically in Cognito and the Google attributes are mapped to Cognito attributes:
+
+![cognito-google-users-after-authn](img/cognito-google-users-after-authn.png)
 
 ![cognito-google-user-details](img/cognito-google-user-details.png)
 
